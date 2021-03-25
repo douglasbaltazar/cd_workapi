@@ -2,6 +2,10 @@
 const Sequelize = require('sequelize')
 const Model = Sequelize.Model
 const Op = Sequelize.Op
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken');
+
+const SECRET = 'DSFGSD453435sdgfhdfg%&"*#"$%#sdgfsd'
 
 class User extends Model {
   static init (sequelize, DataTypes) {
@@ -41,6 +45,11 @@ class User extends Model {
     }, {
       sequelize,
       underscored: true,
+      hooks: {
+        beforeSave: (user, options) => {
+          user.password = bcrypt.hashSync(user.password, 10)
+        }
+      }
     })
     }
     
@@ -73,6 +82,47 @@ class User extends Model {
 
     static async get(id) {
       return await User.findByPk(id, {})
+    }
+
+    static async verifyLogin(email, password) {
+      try {
+        let user = await User.findOne({
+          where: {
+            email: email
+          }
+        })
+
+        if(!user) {
+          throw new Error('Dados invalidos')
+        }
+        if(!bcrypt.compareSync(password, user.password)) {
+          throw new Error('Dados invalidos')
+        }
+
+        let token = jwt.sign({
+          id: user.id
+        }, SECRET, {
+          expiresIn: '1d'
+        })
+
+        return {
+          user: user,
+          token: token
+        }
+
+      } catch(error) {
+        throw error
+      }
+    }
+
+    static async verifyToken(token) {
+      return await jwt.verify(token, SECRET)
+    }
+
+    toJSON() {
+      const values = Object.assign({}, this.get())
+      delete values.password;
+      return values
     }
 }
 

@@ -3,10 +3,17 @@ var router = express.Router();
 
 const UsersController = require('./controllers/users.controller')
 
-router.get('/', UsersController.bindMethod('index'));
-router.get('/:id', UsersController.bindMethod('show'));
-router.post('/', UsersController.bindMethod('store'));
-router.patch('/:id', UsersController.bindMethod('update'));
-router.delete('/:id', UsersController.bindMethod('remove'));
+const verifyAcessToken = require('./middlewares/verifyAccessToken.middleware') 
+const verifyOwner = require('./middlewares/verifyOwner.middleware') 
+
+const onlyAllowsOwner = [verifyAcessToken, verifyOwner]
+//Login
+router.post('/login', UsersController.bindMethod('login'));
+
+router.get('/', verifyAcessToken, UsersController.bindMethod('index'));
+router.get('/:id', verifyAcessToken, UsersController.bindMethod('show'));
+router.post('/', verifyAcessToken, UsersController.bindMethod('store'));
+router.patch('/:id', onlyAllowsOwner, UsersController.bindMethod('update'));
+router.delete('/:id', onlyAllowsOwner, UsersController.bindMethod('remove'));
 
 module.exports = router;

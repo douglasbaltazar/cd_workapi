@@ -16,7 +16,7 @@ class ResourceController {
     }
     async index (req, res, next) {
         try {
-            const { entities, meta }  = await this.model.search(req.query)
+            const { entities, meta }  = await this.model.search(req.query) 
             return successResponse(res, 200, null, entities, meta)
         } catch(error) {
             return errorResponse(res, 500, `Não foi possivel listar entidades de ${this.model.getTableName()}`, error)
